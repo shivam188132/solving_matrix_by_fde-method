@@ -52,4 +52,28 @@ T = solve(A, b)
 T_grid = T.reshape((n, n))
 
 print("Temperature distribution:")
+print(type(T_grid))
 print(T_grid)
+
+# Verification step
+# Create a function to plug the solution back into the original equations
+def verify_solution(T_grid, n):
+    verified = True
+    for i in range(1, n+1):
+        for j in range(1, n+1):
+            Tij = T_grid[i-1, j-1]
+            Ti_plus_1_j = T_grid[i, j-1] if i < n else T_top
+            Ti_minus_1_j = T_grid[i-2, j-1] if i > 1 else T_bottom
+            Ti_j_plus_1 = T_grid[i-1, j] if j < n else T_right
+            Ti_j_minus_1 = T_grid[i-1, j-2] if j > 1 else T_left
+
+            equation = Ti_plus_1_j + Ti_minus_1_j + Ti_j_plus_1 + Ti_j_minus_1 - 4 * Tij
+            if not np.isclose(equation, 0):
+                print(f"Verification failed at (i, j) = ({i}, {j}): {equation}")
+                verified = False
+    return verified
+
+if verify_solution(T_grid, n):
+    print("All equations verified successfully.")
+else:
+    print("There was an error in the solution.")
