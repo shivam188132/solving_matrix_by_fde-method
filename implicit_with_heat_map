@@ -1,0 +1,50 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants and parameters
+l = 4  # Number of segments (excluding boundaries)
+T_left = 100.0  # Left boundary condition
+T_right = 50.0  # Right boundary condition
+initial_T = np.zeros(l)  # Initial temperatures for T1^0 to T4^0
+
+# Parameters for the explicit finite difference method
+alpha = 1.0  # Diffusion coefficient
+delta_t = 0.1  # Time step
+delta_x = 1.0  # Spatial step
+#lambda_ = alpha * delta_t / (delta_x ** 2)  # Stability parameter
+lambda_ = 0.021
+
+# Function to solve for temperatures at each time step
+def solve_temperature(T_prev):
+    T_next = np.zeros_like(T_prev)
+    T_next[0] = lambda_ * T_prev[1] + (1 - 2 * lambda_) * T_prev[0] + lambda_ * T_left
+    for i in range(1, l-1):
+        T_next[i] = lambda_ * (T_prev[i+1] + T_prev[i-1]) + (1 - 2 * lambda_) * T_prev[i]
+    T_next[l-1] = lambda_ * T_prev[l-2] + (1 - 2 * lambda_) * T_prev[l-1] + lambda_ * T_right
+    return T_next
+
+# Initialize the temperature array
+T = initial_T
+
+# Time steps
+num_steps = 50  # Number of time steps to compute
+temperature_history = np.zeros((num_steps, l))
+
+# Compute temperatures for each time step
+for step in range(num_steps):
+    T = np.round(solve_temperature(T),3)
+    temperature_history[step, :] = T
+
+# Add boundary temperatures to the history for plotting
+temperature_history = np.insert(temperature_history, 0, T_left, axis=1)  # Left boundary
+temperature_history = np.insert(temperature_history, temperature_history.shape[1], T_right, axis=1)  # Right boundary
+
+# Plot heatmap
+plt.figure(figsize=(10, 8))
+plt.imshow(temperature_history, aspect='auto', cmap='hot', origin='lower')
+plt.colorbar(label='Temperature (°C)')
+plt.xlabel('Segment')
+plt.ylabel('Time Step')
+plt.title('Temperature Distribution in the Rod Over Time')
+plt.xticks(ticks=np.arange(0, l+2), labels=['0'] + [str(i) for i in range(1, l+1)] + ['5'])
+plt.show()
